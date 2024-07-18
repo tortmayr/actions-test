@@ -9,6 +9,10 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+    types:
+      - opened
+      - synchronize
+      - reopened
   repository_dispatch:
     types: [main_changed]
 
