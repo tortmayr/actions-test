@@ -1,0 +1,18 @@
+name: Main Branch Monitor
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-master:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Trigger Main changed event
+      run: |
+        curl -X POST -H "Accept: application/vnd.github.v3+json" \
+        -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        https://api.github.com/repos/${{ github.repository }}/dispatches \
+        -d '{"event_type":"main_changed"}'
