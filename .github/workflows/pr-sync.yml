@@ -3,6 +3,8 @@
 name: PR sync
 permissions: 
   contents: write
+  issues: read
+  actions: write
 
 # Controls when the workflow will run
 on:
@@ -22,7 +24,19 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          event-type: main-changed
+      - uses: actions/checkout@v4
+      - name: Sync
+        run: |
+          gh pr list --state open --json number,headRefName --jq '.[] | "\(.number) \(.headRefName)"' > pr_list.txt
+          while read pr head_ref; do
+            echo "Triggering workflow for PR #$pr with head ref $head_ref"
+            run_id=$(gh run list --branch $head_ref --json databaseId -q '.[0].databaseId')
+            echo "Rerunning workflow $run_id"
+            if [ -n "$run_id" ]; then
+              gh run rerun $run_id
+            fi
+          done < pr_list.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+     
+
